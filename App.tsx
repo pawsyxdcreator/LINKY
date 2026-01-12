@@ -80,6 +80,9 @@ const App: React.FC = () => {
   const [expiry, setExpiry] = useState('');
   const [isAiEnabled, setIsAiEnabled] = useState(true);
   const [blockBots, setBlockBots] = useState(false);
+  
+  // Animation state for Alias input
+  const [aliasAnimKey, setAliasAnimKey] = useState(0);
 
   useEffect(() => {
     const savedLinks = localStorage.getItem('linky_history');
@@ -138,6 +141,15 @@ const App: React.FC = () => {
     setActiveTab('history');
   };
 
+  const toggleAiInsight = () => {
+    const newValue = !isAiEnabled;
+    setIsAiEnabled(newValue);
+    // If we are switching AI OFF, trigger the Alias spring animation
+    if (!newValue) {
+      setAliasAnimKey(prev => prev + 1);
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim() || isAiTyping) return;
@@ -194,8 +206,15 @@ const App: React.FC = () => {
           60% { transform: translateX(-10px); }
           80% { transform: translateX(10px); }
         }
+        @keyframes aliasSpring {
+          0% { opacity: 1; transform: scale(1); }
+          40% { opacity: 0; transform: scale(0.92); }
+          70% { opacity: 0.8; transform: scale(1.08); }
+          100% { opacity: 1; transform: scale(1); }
+        }
         .animate-spring-down { animation: springDown 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .animate-discord-shake { animation: discordShake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        .animate-alias-spring { animation: aliasSpring 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
         .chat-scroll::-webkit-scrollbar { width: 4px; }
         .chat-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
       `}</style>
@@ -237,13 +256,17 @@ const App: React.FC = () => {
                 <button onClick={() => setShowOptions(!showOptions)} className="flex items-center gap-2 text-sm font-black text-slate-400 uppercase tracking-widest"><Settings className={`w-4 h-4 transition-all ${showOptions ? 'rotate-90 text-indigo-600' : ''}`} /> Options</button>
                 <div className="flex items-center gap-3 bg-white border px-4 py-2 rounded-2xl">
                   <Sparkles className="w-4 h-4 text-indigo-600" /> <span className="text-xs font-black uppercase">AI Insight</span>
-                  <div onClick={() => setIsAiEnabled(!isAiEnabled)} className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-all ${isAiEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}><div className={`w-4 h-4 bg-white rounded-full transition-all ${isAiEnabled ? 'translate-x-4' : ''}`} /></div>
+                  <div onClick={toggleAiInsight} className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-all ${isAiEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}><div className={`w-4 h-4 bg-white rounded-full transition-all ${isAiEnabled ? 'translate-x-4' : ''}`} /></div>
                 </div>
               </div>
 
               {showOptions && (
                 <div className="mt-6 bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl animate-spring-down origin-top grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
+                  {/* Custom Alias with Spring Animation */}
+                  <div 
+                    key={`alias-${aliasAnimKey}`}
+                    className={`space-y-3 ${aliasAnimKey > 0 ? 'animate-alias-spring' : ''}`}
+                  >
                     <label className="text-sm font-black uppercase flex items-center gap-2"><Zap className="w-4 h-4 text-amber-500" /> Alias</label>
                     <input type="text" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="custom-name" className="w-full px-6 py-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-4 ring-indigo-50" />
                   </div>
