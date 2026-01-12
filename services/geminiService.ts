@@ -1,8 +1,9 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { GeminiAnalysis } from "../types";
+import { GeminiAnalysis, LinkData } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// The API key is obtained exclusively from process.env.API_KEY
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const analyzeUrl = async (url: string): Promise<GeminiAnalysis> => {
   try {
@@ -38,4 +39,20 @@ export const analyzeUrl = async (url: string): Promise<GeminiAnalysis> => {
       summary: "A web link."
     };
   }
+};
+
+export const createLinkyChat = (links: LinkData[]) => {
+  const linksContext = links.map(l => `- ${l.originalUrl} (Code: ${l.shortCode}, Category: ${l.category})`).join('\n');
+  
+  return ai.chats.create({
+    model: 'gemini-3-flash-preview',
+    config: {
+      systemInstruction: `You are Linky AI, the premium assistant for the LINKY URL shortener. 
+      Your goal is to help users manage their links, suggest marketing strategies, and analyze their digital presence.
+      
+      User's current links:\n${linksContext || 'No links created yet.'}
+      
+      Be professional, helpful, and concise. Use emojis occasionally. Use Markdown for formatting.`,
+    },
+  });
 };
