@@ -2,8 +2,17 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { GeminiAnalysis, LinkData } from "../types";
 
-// The API key is obtained exclusively from process.env.API_KEY
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Obtenemos la API Key de forma segura
+const getApiKey = () => {
+  try {
+    // Verificamos si process existe para evitar crashes en hosting estático
+    return (typeof process !== 'undefined' && process.env?.API_KEY) ? process.env.API_KEY : "";
+  } catch {
+    return "";
+  }
+};
+
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
 export const analyzeUrl = async (url: string): Promise<GeminiAnalysis> => {
   try {
